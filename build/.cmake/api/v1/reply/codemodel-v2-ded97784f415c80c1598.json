@@ -1,0 +1,60 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2
+					],
+					"jsonFile" : "directory-.-Debug-d0094a50bb2071803777.json",
+					"projectIndex" : 0,
+					"source" : "."
+				},
+				{
+					"build" : "mosquitto_ctrl",
+					"jsonFile" : "directory-mosquitto_ctrl-Debug-92f4569984c03fc07941.json",
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "mosquitto_ctrl"
+				},
+				{
+					"build" : "mosquitto_passwd",
+					"jsonFile" : "directory-mosquitto_passwd-Debug-b65d3935e14b6f20b2bc.json",
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "mosquitto_passwd"
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0,
+						1,
+						2
+					],
+					"name" : "Project"
+				}
+			],
+			"targets" : []
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "C:/Users/Robinson/Desktop/Prueba Mosquitto/build",
+		"source" : "C:/Users/Robinson/Desktop/Prueba Mosquitto/lib/mosquitto/apps"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 5
+	}
+}

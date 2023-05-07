@@ -1,0 +1,6 @@
+C:/Users/Robinson/Desktop/Prueba Mosquitto/build/CMakeFiles/edit_cache.dir
+C:/Users/Robinson/Desktop/Prueba Mosquitto/build/CMakeFiles/rebuild_cache.dir
+C:/Users/Robinson/Desktop/Prueba Mosquitto/build/mosquitto_ctrl/CMakeFiles/edit_cache.dir
+C:/Users/Robinson/Desktop/Prueba Mosquitto/build/mosquitto_ctrl/CMakeFiles/rebuild_cache.dir
+C:/Users/Robinson/Desktop/Prueba Mosquitto/build/mosquitto_passwd/CMakeFiles/edit_cache.dir
+C:/Users/Robinson/Desktop/Prueba Mosquitto/build/mosquitto_passwd/CMakeFiles/rebuild_cache.dir
