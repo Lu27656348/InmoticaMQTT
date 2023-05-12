@@ -1,24 +1,37 @@
-#include <stdio.h>
-#include <assert.h>
-#include <zmq.h>
+#include <iostream>
+#include <string>
+#include <zmq.hpp>
 
-int main()
-{
-    void *context = zmq_ctx_new();
+int main() {
 
-    //Genero el Socket para hablar con el cliente
-    void *cliente = zmq_socket(context, ZMQ_PUB);
-    int rc = zmq_bind(cliente, "tcp://127.0.0.1:5556");
-    assert(rc == 0);
+    // Crea un contexto ZeroMQ
+    zmq::context_t context(1);
 
-    while(1)
-    {
-        rc = zmq_send(cliente, "Hello World!", 12, 0);
-        assert(rc == 12);
+    // Crea un socket de tipo PUB que envía mensajes
+    zmq::socket_t socket(context, zmq::socket_type::pub);
+
+    // Configura el socket para permitir conexiones entrantes
+    int hwm = 0;
+    socket.setsockopt(ZMQ_SNDHWM, &hwm, sizeof(hwm));
+
+    // Conéctate al socket en la dirección "tcp://localhost:5555"
+    std::cout << "Conectando al servidor..." << std::endl;
+    socket.connect("tcp://localhost:5555");
+
+    // Define el mensaje a enviar al broker
+    std::string mensaje = "Hola mundo";
+    
+    // Envía el mensaje
+    zmq::message_t zmq_message(mensaje.size());
+    memcpy(zmq_message.data(), mensaje.c_str(), mensaje.size());
+
+    try {
+        socket.send(zmq_message, 0);
+        std::cout << "Mensaje enviado: " << mensaje << std::endl;
+    } catch (zmq::error_t& ex) {
+        std::cerr << "Error al enviar el mensaje: " << ex.what() << std::endl;
+        return 1;
     }
-
-    zmq_close(cliente);
-    zmq_ctx_destroy(context);
 
     return 0;
 }
