@@ -9,7 +9,11 @@ using namespace std;
 
 map<string, shared_ptr<zmq::socket_t>> subscribers;
 
+<<<<<<< HEAD
 unordered_map<string, string> Cliente;
+=======
+map<string, string> Cliente;
+>>>>>>> Cliente
 
 //Función que recibe el mensaje del cliente
 void handle_message(zmq::socket_t& socket) {
@@ -31,8 +35,12 @@ void handle_message(zmq::socket_t& socket) {
     std::string message = msg.substr(posicion + 1);
 
     //agregar al map de conexion de clientes al broker
+<<<<<<< HEAD
 
     Cliente.emplace(id,message);
+=======
+    Cliente.insert(make_pair(id,message));
+>>>>>>> Cliente
 
     //mostrar Clientes del map
     for (auto& i : Cliente) {
@@ -40,16 +48,30 @@ void handle_message(zmq::socket_t& socket) {
     }
 
     // Separa el tema y el mensaje del mensaje recibido
+<<<<<<< HEAD
     std::string topic = "Bombillo";
 
     std::string payload = message;
 
     // Publica el mensaje en los sockets de los suscriptores
+=======
+    size_t delimiter_pos = msg.find_first_of('-');
+    std::string topic = msg.substr(0, delimiter_pos);
+    std::string payload = msg.substr(delimiter_pos + 1);
+
+    // Publica el mensaje en los sockets de los suscriptores
+    /*subscribers.insert(make_pair(topic, make_shared<zmq::socket_t>(std::move(socket))));
+
+>>>>>>> Cliente
     if (subscribers.find(topic) != subscribers.end()) {
         zmq::message_t response(payload.size());
         memcpy(response.data(), payload.data(), payload.size());
 
+<<<<<<< HEAD
         for (const auto& subscriber : subscribers) {
+=======
+        for (auto& it : subscribers) {
+>>>>>>> Cliente
             try {
                 if (subscriber.second) {
                     subscriber.second->send(response, zmq::send_flags::none);
@@ -61,7 +83,11 @@ void handle_message(zmq::socket_t& socket) {
                 std::cerr << "Error al enviar el mensaje: " << ex.what() << std::endl;
             }
         }
+<<<<<<< HEAD
     } 
+=======
+    }*/
+>>>>>>> Cliente
 
     // Enviar la respuesta al cliente
     zmq::message_t reply(5);
