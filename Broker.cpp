@@ -3,6 +3,7 @@
 #include <zmq.hpp>
 #include <map>
 #include <unordered_map>
+#include <memory>
 
 using namespace std;
 
@@ -39,26 +40,28 @@ void handle_message(zmq::socket_t& socket) {
     }
 
     // Separa el tema y el mensaje del mensaje recibido
-    size_t delimiter_pos = msg.find_first_of('-');
-    std::string topic = msg.substr(0, delimiter_pos);
-    std::string payload = msg.substr(delimiter_pos + 1);
+    std::string topic = "Bombillo";
+
+    std::string payload = message;
 
     // Publica el mensaje en los sockets de los suscriptores
-    /*subscribers.insert(make_pair(topic, make_shared<zmq::socket_t>(std::move(socket))));
-
     if (subscribers.find(topic) != subscribers.end()) {
         zmq::message_t response(payload.size());
         memcpy(response.data(), payload.data(), payload.size());
 
-        for (auto& it : subscribers) {
+        for (const auto& subscriber : subscribers) {
             try {
-                subscribers[topic]->send(response, zmq::send_flags::none);
-                std::cout << "Mensaje enviado a suscriptor." << std::endl;
+                if (subscriber.second) {
+                    subscriber.second->send(response, zmq::send_flags::none);
+                    std::cout << "Mensaje ZMQ enviado a suscriptor: " << payload << std::endl;
+                } else {
+                    std::cerr << "Error: socket nulo para el tema " << topic << std::endl;
+                }
             } catch (zmq::error_t& ex) {
                 std::cerr << "Error al enviar el mensaje: " << ex.what() << std::endl;
             }
         }
-    } */
+    } 
 
     // Enviar la respuesta al cliente
     zmq::message_t reply(5);
@@ -79,8 +82,13 @@ int main() {
     receiver.bind("tcp://*:5556");
 
     // Socket PUB para publicar mensajes en los temas suscritos por los clientes
-    zmq::socket_t publisher(context, zmq::socket_type::pub);
-    publisher.bind("tcp://*:5557");
+    //zmq::socket_t publisher(context, zmq::socket_type::pub);
+    //publisher.bind("tcp://*:5557");
+
+    // Crear un socket de publicación para el tema "Bombillo"
+    auto socket_ptr = std::make_shared<zmq::socket_t>(context, zmq::socket_type::pub);
+    socket_ptr->bind("tcp://*:5557");
+    subscribers.insert(make_pair("Bombillo", std::move(socket_ptr)));
 
     std::cout << "Broker MQTT iniciado." << std::endl;
 
