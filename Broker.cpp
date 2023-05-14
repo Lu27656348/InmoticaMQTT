@@ -2,12 +2,13 @@
 #include <string>
 #include <zmq.hpp>
 #include <map>
+#include <unordered_map>
 
 using namespace std;
 
 map<string, shared_ptr<zmq::socket_t>> subscribers;
 
-map<string, string> Cliente;
+unordered_map<string, string> Cliente;
 
 //Función que recibe el mensaje del cliente
 void handle_message(zmq::socket_t& socket) {
@@ -29,7 +30,8 @@ void handle_message(zmq::socket_t& socket) {
     std::string message = msg.substr(posicion + 1);
 
     //agregar al map de conexion de clientes al broker
-    Cliente.insert(make_pair(id,message));
+
+    Cliente.emplace(id,message);
 
     //mostrar Clientes del map
     for (auto& i : Cliente) {
@@ -56,7 +58,7 @@ void handle_message(zmq::socket_t& socket) {
                 std::cerr << "Error al enviar el mensaje: " << ex.what() << std::endl;
             }
         }
-    }*/
+    } */
 
     // Enviar la respuesta al cliente
     zmq::message_t reply(5);
