@@ -1,31 +1,19 @@
 #include <iostream>
-#include <string>
 #include <zmq.hpp>
 
-using namespace std;
-
-int main() {
+int main(){
     zmq::context_t context(1);
+    zmq::socket_t receiver(context,ZMQ_SUB);
 
-    // Crear un socket de suscriptor
-    zmq::socket_t subscriber(context, zmq::socket_type::sub);
-    std::cout << "Conectando al servidor..." << std::endl;
-    subscriber.connect("tcp://127.0.0.1:5557");
+    receiver.connect("tcp://localhost:5556");
 
-    // Suscribirse al topic "Bombillo"
-    subscriber.setsockopt(ZMQ_SUBSCRIBE, "Bombillo", strlen("Bombillo"));
+    //Inserte codigo de suscripcion
+    receiver.setsockopt(ZMQ_SUBSCRIBE,"",0);
 
-    std::cout << "Suscriptor MQTT iniciado." << std::endl;
-
-    while (true) {
+    while(true){
         zmq::message_t message;
-        subscriber.recv(message, zmq::recv_flags::none);
-
-        // Convertir el mensaje a una cadena de texto
-        std::string payload(static_cast<char*>(message.data()), message.size());
-
-        std::cout << "Mensaje recibido: " << payload << std::endl;
+        receiver.recv(&message);
+        std::cout << "Mensaje recibido: " << std::string(static_cast<char*>(message.data()),message.size()) << std::endl;
     }
-
     return 0;
 }

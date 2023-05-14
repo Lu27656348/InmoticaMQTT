@@ -9,17 +9,18 @@ using namespace std;
 
 map<string, shared_ptr<zmq::socket_t>> subscribers;
 
-<<<<<<< HEAD
 unordered_map<string, string> Cliente;
-=======
-map<string, string> Cliente;
->>>>>>> Cliente
 
 //Función que recibe el mensaje del cliente
-void handle_message(zmq::socket_t& socket) {
+void handle_message(zmq::socket_t& socket, zmq::socket_t& publisher) {
     // Recibe el mensaje del cliente
     zmq::message_t request;
     socket.recv(request, zmq::recv_flags::none);
+
+    //Analizar el topico y en funcion del topico
+
+    //Envia al publisher
+    publisher.send(request,zmq::send_flags::none);
 
     // Convierte el mensaje a una cadena
     std::string msg(static_cast<char*>(request.data()), request.size());
@@ -35,12 +36,8 @@ void handle_message(zmq::socket_t& socket) {
     std::string message = msg.substr(posicion + 1);
 
     //agregar al map de conexion de clientes al broker
-<<<<<<< HEAD
 
     Cliente.emplace(id,message);
-=======
-    Cliente.insert(make_pair(id,message));
->>>>>>> Cliente
 
     //mostrar Clientes del map
     for (auto& i : Cliente) {
@@ -48,50 +45,13 @@ void handle_message(zmq::socket_t& socket) {
     }
 
     // Separa el tema y el mensaje del mensaje recibido
-<<<<<<< HEAD
-    std::string topic = "Bombillo";
-
-    std::string payload = message;
-
-    // Publica el mensaje en los sockets de los suscriptores
-=======
     size_t delimiter_pos = msg.find_first_of('-');
     std::string topic = msg.substr(0, delimiter_pos);
     std::string payload = msg.substr(delimiter_pos + 1);
 
-    // Publica el mensaje en los sockets de los suscriptores
-    /*subscribers.insert(make_pair(topic, make_shared<zmq::socket_t>(std::move(socket))));
-
->>>>>>> Cliente
-    if (subscribers.find(topic) != subscribers.end()) {
-        zmq::message_t response(payload.size());
-        memcpy(response.data(), payload.data(), payload.size());
-
-<<<<<<< HEAD
-        for (const auto& subscriber : subscribers) {
-=======
-        for (auto& it : subscribers) {
->>>>>>> Cliente
-            try {
-                if (subscriber.second) {
-                    subscriber.second->send(response, zmq::send_flags::none);
-                    std::cout << "Mensaje ZMQ enviado a suscriptor: " << payload << std::endl;
-                } else {
-                    std::cerr << "Error: socket nulo para el tema " << topic << std::endl;
-                }
-            } catch (zmq::error_t& ex) {
-                std::cerr << "Error al enviar el mensaje: " << ex.what() << std::endl;
-            }
-        }
-<<<<<<< HEAD
-    } 
-=======
-    }*/
->>>>>>> Cliente
-
     // Enviar la respuesta al cliente
     zmq::message_t reply(5);
-    memcpy(reply.data(), "OK", 2);
+    memcpy(reply.data(), "OK\n", 2);
     socket.send(reply, zmq::send_flags::none);
 }
 
@@ -105,16 +65,13 @@ int main() {
 
     // Socket REP para recibir mensajes del cliente
     zmq::socket_t receiver(context, zmq::socket_type::rep);
-    receiver.bind("tcp://*:5556");
-
+    receiver.bind("tcp://*:5557");
+    
     // Socket PUB para publicar mensajes en los temas suscritos por los clientes
-    //zmq::socket_t publisher(context, zmq::socket_type::pub);
-    //publisher.bind("tcp://*:5557");
+    zmq::socket_t publisher(context, ZMQ_PUB);
+    publisher.bind("tcp://*:5556");
 
-    // Crear un socket de publicación para el tema "Bombillo"
-    auto socket_ptr = std::make_shared<zmq::socket_t>(context, zmq::socket_type::pub);
-    socket_ptr->bind("tcp://*:5557");
-    subscribers.insert(make_pair("Bombillo", std::move(socket_ptr)));
+    //receiver.setsockopt(ZMQ_SUBSCRIBE, "",0);
 
     std::cout << "Broker MQTT iniciado." << std::endl;
 
@@ -126,7 +83,7 @@ int main() {
         zmq::poll(items, 1, -1);
 
         if (items[0].revents & ZMQ_POLLIN) {
-            handle_message(receiver);
+            handle_message(receiver,publisher);
         }
     }
 

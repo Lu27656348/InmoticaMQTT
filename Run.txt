@@ -1,0 +1,3 @@
+g++ -std=c++11 Broker.cpp -lzmq -o broker
+g++ -std=c++11 Publisher.cpp -lzmq -o publisher
+g++ -std=c++11 Subscriber.cpp -lzmq -o subscriber
