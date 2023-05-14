@@ -5,28 +5,50 @@
 
 using namespace std;
 
-map<string, zmq::socket_t*> subscribers;
+map<string, shared_ptr<zmq::socket_t>> subscribers;
 
+map<string, string> Cliente;
+
+//Función que recibe el mensaje del cliente
 void handle_message(zmq::socket_t& socket) {
     // Recibe el mensaje del cliente
     zmq::message_t request;
     socket.recv(request, zmq::recv_flags::none);
 
     // Convierte el mensaje a una cadena
-    std::string message(static_cast<char*>(request.data()), request.size());
-    std::cout << "Mensaje recibido: " << message << std::endl;
+    std::string msg(static_cast<char*>(request.data()), request.size());
+    std::cout << "Mensaje recibido: " << msg << std::endl;
+
+    //Separar el mensaje recibido en dos cadenas ()
+    size_t posicion = msg.find_first_of('-');
+
+    //Id Cliente
+    std::string id = msg.substr(0, posicion);
+
+    //Mensaje recibido
+    std::string message = msg.substr(posicion + 1);
+
+    //agregar al map de conexion de clientes al broker
+    Cliente.insert(make_pair(id,message));
+
+    //mostrar Clientes del map
+    for (auto& i : Cliente) {
+    cout << "Id: " << i.first << ", Mensaje: " << i.second << endl;
+    }
 
     // Separa el tema y el mensaje del mensaje recibido
-    size_t delimiter_pos = message.find_first_of(' ');
-    std::string topic = message.substr(0, delimiter_pos);
-    std::string payload = message.substr(delimiter_pos + 1);
+    size_t delimiter_pos = msg.find_first_of('-');
+    std::string topic = msg.substr(0, delimiter_pos);
+    std::string payload = msg.substr(delimiter_pos + 1);
 
     // Publica el mensaje en los sockets de los suscriptores
-    /*if (subscribers.find(topic) != subscribers.end()) {
+    /*subscribers.insert(make_pair(topic, make_shared<zmq::socket_t>(std::move(socket))));
+
+    if (subscribers.find(topic) != subscribers.end()) {
         zmq::message_t response(payload.size());
         memcpy(response.data(), payload.data(), payload.size());
 
-        for (auto it = subscribers[topic]->begin(); it != subscribers[topic]->end(); ++it) {
+        for (auto& it : subscribers) {
             try {
                 subscribers[topic]->send(response, zmq::send_flags::none);
                 std::cout << "Mensaje enviado a suscriptor." << std::endl;
@@ -34,7 +56,7 @@ void handle_message(zmq::socket_t& socket) {
                 std::cerr << "Error al enviar el mensaje: " << ex.what() << std::endl;
             }
         }
-    } */
+    }*/
 
     // Enviar la respuesta al cliente
     zmq::message_t reply(5);
@@ -42,6 +64,7 @@ void handle_message(zmq::socket_t& socket) {
     socket.send(reply, zmq::send_flags::none);
 }
 
+//Funcion Main()
 int main() {
     int major, minor, patch;
     zmq_version(&major,&minor,&patch);
