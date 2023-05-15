@@ -1,0 +1,22 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build",
+            "type": "shell",
+            "command": "g++",
+            "args": [
+                "-Wall",
+                "-IC:/Program Files/mosquitto/devel",
+                "-LC:/Users/Robinson/Desktop/Prueba Mosquitto/lib",
+                "-o",
+                "prueba",
+                "prueba.cpp"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}
