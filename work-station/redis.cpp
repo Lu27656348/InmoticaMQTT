@@ -47,7 +47,27 @@ void publish(const std::string& publisher_id, const std::string& message)
         return;
     }
 
-    redisReply* reply = (redisReply*)redisCommand(redis, "HMSET publisher Id %s Mensaje %s", publisher_id.c_str(), message.c_str()); // Insertar el publicador en la tabla "publisher"
+    // Verificar hasta donde hay datos en la tabla "publisher"
+    int i = 0;
+    redisReply* ver = nullptr;
+    std::string str_i;
+    do {
+        str_i = std::to_string(i);
+        ver = (redisReply*)redisCommand(redis, "EXISTS publisher:%s", str_i.c_str());
+        if (ver == nullptr) {
+            std::cout << "Error al consultar Redis: " << redis->errstr << std::endl;
+            redisFree(redis);
+            return;
+        }
+        if (ver->integer == 0) {
+            freeReplyObject(ver);
+            break;
+        }
+        freeReplyObject(ver);
+        i++;
+    } while (true);
+
+    redisReply* reply = (redisReply*)redisCommand(redis, "HMSET publisher:%s Id %s Mensaje %s", str_i.c_str(), publisher_id.c_str(), message.c_str()); // Insertar el publicador en la tabla "publisher"
     freeReplyObject(reply);
 
     redisFree(redis); // Cerrar la conexión a Redis
@@ -68,22 +88,29 @@ void list_publishers()
         return;
     }
 
-    redisReply* reply = (redisReply*)redisCommand(redis, "HGETALL publisher"); // Obtener todos los campos y valores de la tabla "publisher"
-    //redisReply* reply = (redisReply*)redisCommand(redis, "HVALS publisher"); // Obtener todos los valores de la tabla "publisher"
-    if (reply == NULL || reply->type == REDIS_REPLY_ERROR) {
-        std::cout << "Error al obtener los datos de la tabla: " << redis->errstr << std::endl;
-        freeReplyObject(reply);
-        redisFree(redis);
-        return;
-    }
+    // Verificar hasta donde hay datos en la tabla "publisher"
+    int i = 0;
+    redisReply* ver = nullptr;
+    std::string str_i;
+    do {
+        str_i = std::to_string(i);
 
-    if (reply->type == REDIS_REPLY_ARRAY) {
-        for (int i = 0; i < reply->elements; i += 2) {
-            std::cout << reply->element[i]->str << ": " << reply->element[i+1]->str << std::endl; // Imprimirtodos los campos y valores de la tabla
+        // Recuperar los datos del publicador
+        redisReply* reply = (redisReply*)redisCommand(redis,"HMGET publisher:%s Id Mensaje", str_i.c_str());
+        if (reply == nullptr) {
+            std::cout << "Error al consultar Redis: " << redis->errstr << std::endl;
+            redisFree(redis);
+            return;
         }
-    }
 
-    freeReplyObject(reply);
+        // Mostrar los datos del publicador en la pantalla
+        std::cout << "Id: " << reply->element[0]->str << ", Mensaje: " << reply->element[1]->str << std::endl;
+
+        freeReplyObject(reply);
+
+        i++;
+    } while (true);
+
     redisFree(redis); // Cerrar la conexión a Redis
 }
 
