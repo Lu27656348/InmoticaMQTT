@@ -4,10 +4,11 @@
 #include <functional>
 #include <ctime>
 #include <vector>
+#include <hiredis/hiredis.h>
 
 using namespace std;
 
-const std::string BROKER_ADDRESS { "tcp://localhost:1883" };
+const std::string BROKER_ADDRESS {"tcp://localhost:1883" };
 const std::string SUBSCRIBER_SOCKET_ADDRESS { "tcp://*:5555" };
 const std::string PUBLISHER_SOCKET_ADDRESS { "tcp://*:6666" };
 const int QOS = 1;
