@@ -5,6 +5,8 @@
 #include <zmq_addon.hpp>
 #include <pthread.h>
 #include "shared.h"
+#include "messages.h"
+#include "Publisher.h"
 
 void* reader_thread(void*){
     //Debo cerrar la variable para mantener la consistencia
@@ -13,6 +15,17 @@ void* reader_thread(void*){
     pthread_mutex_unlock(&pthread_mutex);
     //Termino con la variable y la libero
     return NULL;
+
+}
+
+int topic_handler(std::string topic, std::string payload){
+    /*
+    switch(topic){
+        case "PUBLISH":
+        break;
+
+    }
+    */
 
 }
 
@@ -32,7 +45,7 @@ static void* Broker(void* nullarg)
 
     while(true){
         //Lee variable compartida
-        reader_thread(NULL);
+        //reader_thread(NULL);
         // receive a message
         zmq::message_t topic;
         zmq::message_t content;
@@ -42,11 +55,17 @@ static void* Broker(void* nullarg)
             std::string topic_str(static_cast<char*>(topic.data()), topic.size());
             std::string content_str(static_cast<char*>(content.data()), content.size());
 
-            if(topic_str == "status"){
+            if(topic_str == "PUBLISH"){
+                std::istringstream iss(content_str);
+                Publisher deserialized;
+                iss >> deserialized;
+                std::cout << "Objeto deserializado: " << deserialized.getPublishTopic() << std::endl;
                 //Buscar todos los subscriptores asociados
                 //al topico y mandar el contenido
+                /*
                 publisher.send(zmq::str_buffer("status"), zmq::send_flags::none);
                 publisher.send(zmq::str_buffer("Mensaje desde broker"));
+                */
             }
 
             std::cout << "Received message on topic \"" << topic_str << "\": " << content_str << std::endl;
