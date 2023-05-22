@@ -81,7 +81,7 @@ void publish(const std::string& publisher_id, const std::string& message)
 
 void list_publishers()
 {
-    std::cout << "Publishers:" << std::endl;
+    std::cout << "services:" << std::endl;
     redisContext* redis = redisConnect("127.0.0.1", 6379); // Conectarse a Redis
     if (redis == NULL || redis->err) {
         std::cout << "Error al conectarse a Redis: " << redis->errstr << std::endl;
@@ -114,6 +114,111 @@ void list_publishers()
     redisFree(redis); // Cerrar la conexión a Redis
 }
 
+void services_for_publisher(int id)
+{
+    std::cout << "Publisher:" << id << std::endl;
+    redisContext* redis = redisConnect("127.0.0.1", 6379); // Conectarse a Redis
+    if (redis == NULL || redis->err) {
+        std::cout << "Error al conectarse a Redis: " << redis->errstr << std::endl;
+        return;
+    }
+
+    // Verificar hasta donde hay datos en la tabla "publisher"
+    redisReply* ver = nullptr;
+    std::string str_i = to_string(id);
+
+    // Recuperar los datos del publicador
+    redisReply* reply = (redisReply*)redisCommand(redis,"HVALS publisher:%s", str_i.c_str());
+    if (reply == nullptr) {
+        std::cout << "Error al consultar Redis: " << redis->errstr << std::endl;
+        redisFree(redis);
+        return;
+    }
+
+    // Mostrar los servicios del publicador en la pantalla
+    if(reply->type == REDIS_REPLY_ARRAY){
+        std::cout << "Servicios: ";
+        cout << reply->element[2]->str << " ";
+        std::cout << std::endl;
+    }
+
+    freeReplyObject(reply);
+
+
+    redisFree(redis); // Cerrar la conexión a Redis
+}
+
+
+//Crear servicio
+void create_service(){
+    std::string topic;
+    std::cout << "Enter message: ";
+    std::cin >> topic;
+
+    redisContext* redis = redisConnect("127.0.0.1", 6379); // Conectarse a Redis
+    if (redis == NULL || redis->err) {
+        std::cout << "Error al conectarse a Redis: " << redis->errstr << std::endl;
+        return;
+    }
+
+    // Verificar hasta donde hay datos en la tabla "service"
+    int i = 0;
+    std::string str_i;
+    do {
+        str_i = std::to_string(i);
+
+        // Recuperar los datos del publicador
+        redisReply* reply = (redisReply*)redisCommand(redis,"HMGET service:%s topic", str_i.c_str());
+        if (reply == nullptr) {
+            std::cout << "Error al consultar Redis: " << redis->errstr << std::endl;
+            redisFree(redis);
+            return;
+        }
+
+        //si ya está repetido salir de la función
+        if (strcmp(reply->element[0]->str, topic.c_str()) == 0) {
+            // Mostrar los datos del publicador en la pantalla
+            std::cout << "Topic ya ingresado" << std::endl;
+            freeReplyObject(reply);
+            return;
+        }
+        
+        freeReplyObject(reply);
+
+        i++;
+    } while (true);
+
+    // Verificar hasta donde hay datos en la tabla "service"
+    i = 0;
+    redisReply* ver = nullptr;
+    do {
+        str_i = std::to_string(i);
+        ver = (redisReply*)redisCommand(redis, "EXISTS service:%s", str_i.c_str());
+        if (ver == nullptr) {
+            std::cout << "Error al consultar Redis: " << redis->errstr << std::endl;
+            redisFree(redis);
+            return;
+        }
+        if (ver->integer == 0) {
+            freeReplyObject(ver);
+            break;
+        }
+        freeReplyObject(ver);
+        i++;
+    } while (true);
+
+    redisReply* reply = (redisReply*)redisCommand(redis, "HMSET service:%s topic %s", str_i.c_str(), topic.c_str()); // Insertar el publicador en la tabla "publisher"
+    freeReplyObject(reply);
+
+    redisFree(redis); // Cerrar la conexión a Redis
+}
+
+
+//Crea un suscriptor
+void create_subscriber(){
+
+}
+
 int main(){
     std::string publisher_id;
     std::string message;
@@ -121,11 +226,18 @@ int main(){
     std::cout << "\n";
     publisher_id = to_string(generarIDUnico());
 
-    std::cout << "Enter message: ";
-    std::cin >> message;
+    //std::cout << "Enter message: ";
+    //std::cin >> message;
 
-    publish(publisher_id, message);
+    //publish(publisher_id, message);
 
-    list_publishers();
+    //list_publishers();
+
+    //services_for_publisher(92878);
+
+    //services_for_publisher(2);
+
+    create_service();
+
     return 0;
 }
