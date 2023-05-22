@@ -14,7 +14,9 @@ SOURCES += \
     mainwindow.cpp
 
 HEADERS += \
-    mainwindow.h
+    Publisher.h \
+    mainwindow.h \
+    shared.h
 
 FORMS += \
     mainwindow.ui
