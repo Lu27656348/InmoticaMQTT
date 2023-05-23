@@ -15,6 +15,7 @@ SOURCES += \
 
 HEADERS += \
     Publisher.h \
+    Subscriber.h \
     mainwindow.h \
     messages.h \
     shared.h
