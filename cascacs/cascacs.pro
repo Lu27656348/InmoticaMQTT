@@ -15,6 +15,7 @@ SOURCES += \
 
 HEADERS += \
     Publisher.h \
+    Redis.h \
     Subscriber.h \
     mainwindow.h \
     messages.h \
@@ -29,6 +30,7 @@ CONFIG += lrelease
 CONFIG += embed_translations
 
 LIBS += -lzmq
+LIBS += -lhiredis
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

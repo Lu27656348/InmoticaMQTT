@@ -94,7 +94,7 @@ int main(void)
     //pthread_create(&thread3,NULL,Subscriber_routine,&pa3);
     //Se inician los hilos con los procesos del publicador
     pthread_create(&thread,NULL,Publisher_routine,&pa1);
-    pthread_create(&thread2,NULL,Publisher_routine,&pa2);
+    //pthread_create(&thread2,NULL,Publisher_routine,&pa2);
 
     pthread_join(broker,NULL);
     pthread_join(thread,NULL);
