@@ -23,6 +23,16 @@ class CONNECT {
         clientId(clientId),
         cleanSession(cleanSession),
         keepAlive(keepAlive){}
+        friend std::ostream& operator<<(std::ostream& os, const CONNECT& connect) {
+            os << connect.clientId << " " << connect.cleanSession << " " << connect.keepAlive;
+            return os;
+        }
+
+        // Operador de extracción >>
+        friend std::istream& operator>>(std::istream& is, CONNECT& connect) {
+            is >> connect.clientId >> connect.cleanSession >> connect.keepAlive;
+            return is;
+        }
 
      //Recordar meter SETTERS Y GETTERS AQUI
 };
@@ -77,6 +87,8 @@ class SUBSCRIBE {
 
 };
 #endif // SUBSCRIBE_H
+
+/*
 class UNSUBCRIBE {
 
 
@@ -92,4 +104,4 @@ class UNSUBACK {
 
 };
 
-
+*/
