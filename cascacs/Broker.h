@@ -45,25 +45,21 @@ int topic_handler(std::string topic, std::string payload){
 
  void* Broker(void* arg)
 {
-    //zmq::context_t* context = static_cast<zmq::context_t*>(arg);
-    zmq::context_t context(1);
+    zmq::context_t* context = static_cast<zmq::context_t*>(arg);
+
     std::cout << "Broker iniciado" << std::endl;
+    std::cout << "Contexto de ZeroMQ: " << *context << std::endl;
 
     // construct a REQ (request) socket and connect to interface
-    zmq::socket_t subscriber{context, zmq::socket_type::sub};
-    zmq::socket_t publisher{context, zmq::socket_type::pub};
-
-    //zmq::socket_t router{*context, zmq::socket_type::router};
-    //router.bind("tcp://*:5555");
+    zmq::socket_t subscriber{*context, zmq::socket_type::sub};
+    zmq::socket_t publisher{*context, zmq::socket_type::pub};
 
     subscriber.bind("tcp://*:5555");
+    subscriber.setsockopt(ZMQ_SUBSCRIBE,"",0);
+
     publisher.bind("tcp://*:5556");
 
-    zmq::proxy(subscriber, publisher);
-
-
-    // set topics you want to sub
-    subscriber.setsockopt(ZMQ_SUBSCRIBE,"",0);
+    //zmq::proxy(subscriber, publisher);
 
     while(true){
 
@@ -71,6 +67,12 @@ int topic_handler(std::string topic, std::string payload){
             subscriber.recv(&message);
             std::string str_message = std::string(static_cast<char*>(message.data()), message.size());
             std::cout << "Received message: " << str_message << std::endl;
+
+            std::string message_subscribers = ": Hello, World!";
+            zmq::message_t zmq_message(message_subscribers.size());
+            memcpy(zmq_message.data(), message_subscribers.data(), message_subscribers.size());
+            publisher.send(zmq_message);
+            usleep(1000000); // Esperar un segundo
 
         /*
         zmq::message_t topic;

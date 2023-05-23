@@ -13,14 +13,9 @@
 #include "messages.h"
 #include "shared.h"
 struct publisher_args {
-    std::string name;
+    zmq::context_t* context;
+    std::string publisher_id;
 };
-
-// initialize the zmq context with a single IO thread
-zmq::context_t context{20};
-
-// construct a PUB (request) socket and connect to interface
-zmq::socket_t socket{context, zmq::socket_type::pub};
 
 
 class Lightbul {
@@ -179,16 +174,18 @@ void* writer_thread(void*){
 void* Publisher_routine(void* arg)
 {
 
-    publisher_args *pa = (publisher_args *)arg;
+    publisher_args* args = static_cast<publisher_args*>(arg);
 
-    zmq::context_t* context = static_cast<zmq::context_t*>(arg);
+    zmq::context_t* context = args->context;
+    std::string publisher_id = args->publisher_id;
+
     std::cout << "Publisher iniciado " <<std::endl;
     zmq::socket_t socket(*context, ZMQ_PUB);
 
     socket.connect("tcp://localhost:5555");
 
     while (true) {
-        std::string message = pa->name + ": Hello, World!";
+        std::string message = publisher_id + ": Hello, World!";
         zmq::message_t zmq_message(message.size());
         memcpy(zmq_message.data(), message.data(), message.size());
         socket.send(zmq_message);
