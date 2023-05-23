@@ -27,9 +27,17 @@ void* reader_thread(void*){
 
 void* print_vector(std::vector<Publisher> publisher_list){
     std::cout << "**PRINT** " << std::endl;
-    for(int i = 0; i < publisher_list.size();i++){
-        std::cout << "Publisher " << publisher_list[i].getClientId() << std::endl;
+    std::cout << "-----------------------" << std::endl;
+    if(publisher_list.size()<1){
+         std::cout << "No hay publisher" << std::endl;
+
+    }else{
+         for(int i = 0; i < publisher_list.size();i++){
+             std::cout << "Publisher " << publisher_list[i].getClientId() << " " << publisher_list[i].getPublishTopic() <<std::endl;
+         }
     }
+    std::cout << "-----------------------" << std::endl;
+
 }
 
 int topic_handler(std::string topic, std::string payload){
@@ -63,57 +71,74 @@ int topic_handler(std::string topic, std::string payload){
 
     while(true){
 
-            zmq::message_t message;
-            subscriber.recv(&message);
-            std::string str_message = std::string(static_cast<char*>(message.data()), message.size());
-            std::cout << "Received message: " << str_message << std::endl;
+            zmq::message_t topic;
+            zmq::message_t content;
+            bool received = subscriber.recv(topic, zmq::recv_flags::none) &&
+                            subscriber.recv(content, zmq::recv_flags::none);
 
+            if (received) {
+
+                std::string topic_str(static_cast<char*>(topic.data()), topic.size());
+                std::string content_str(static_cast<char*>(content.data()), content.size());
+
+                //El cliente quiere establecer una conexion
+                if(topic_str == "CONNECT"){
+                    std::cout << "Se recibio una peticion CONNECT con las caracteristicas: " << content_str << std::endl;
+
+                    std::istringstream iss(content_str);
+                    Publisher deserialized;
+                    iss >> deserialized;
+
+                    //Enviar CONNACK de vuelta y habilitar conexion (Nota: Actualmente por los mecanismos de ZeroMQ
+                    //Los publicadores no pueden recibir mensajes, es necesario cambiar los sockets a tipo reply
+
+                    /*
+                    auto iter = std::find_if(publisher_list.begin(), publisher_list.end(), [&](const CONNECT& obj) {
+                        return obj.getClientId() == deserialized.getClientId();
+                    });
+
+                    if (iter != publisher_list.end()) {
+                        std::cout << "Objeto encontrado: " << iter->clientId << std::endl;
+                    } else {
+                        std::cout << "Objeto no encontrado." << std::endl;
+                    }
+*/
+                    //publisher_list.push_back(deserialized.clientId);
+
+                    pthread_mutex_lock(&pthread_mutex);
+                    respuesta_recibida = 1;
+                    pthread_cond_signal(&condition);
+                    pthread_mutex_unlock(&pthread_mutex);
+
+
+                    //pthread_exit(NULL);
+
+                }else if (topic_str == "PUBLISH"){
+
+                    std::istringstream iss(content_str);
+                    Publisher deserialized;
+                    iss >> deserialized;
+
+                    publisher_list.push_back(deserialized);
+                    std::cout << "Se ha hecho una publicacion " << std::endl;
+                    publisher.send(zmq::str_buffer("status"), zmq::send_flags::none);
+                    publisher.send(zmq::str_buffer("Mensaje desde broker"));
+                }
+
+                std::cout << "Received message on topic \"" << topic_str << "\": " << content_str << std::endl;
+
+            } else {
+                // handle receive errors
+                std::cerr << "Error receiving message: " << zmq_strerror(errno) << std::endl;
+            }
+            print_vector(publisher_list);
+             /*
             std::string message_subscribers = ": Hello, World!";
             zmq::message_t zmq_message(message_subscribers.size());
             memcpy(zmq_message.data(), message_subscribers.data(), message_subscribers.size());
             publisher.send(zmq_message);
             usleep(1000000); // Esperar un segundo
-
-        /*
-        zmq::message_t topic;
-        zmq::message_t content;
-        bool received = subscriber.recv(topic, zmq::recv_flags::none) &&
-                        subscriber.recv(content, zmq::recv_flags::none);
-        if (received) {
-            std::string topic_str(static_cast<char*>(topic.data()), topic.size());
-            std::string content_str(static_cast<char*>(content.data()), content.size());
-
-            std::istringstream iss(content_str);
-            Publisher deserialized;
-            iss >> deserialized;
-
-            //El cliente quiere establecer una conexion
-            if(topic_str == "CONNECT"){
-                std::cout << "Se recibio una peticion CONNECT con las caracteristicas: " << content_str << std::endl;
-                std::cout << "Publisher " << deserialized.getClientId() << std::endl;
-                //Enviar CONNACK de vuelta y habilitar conexion (Nota: Actualmente por los mecanismos de ZeroMQ
-                //Los publicadores no pueden recibir mensajes, es necesario cambiar los sockets a tipo reply
-
-                publisher_list.push_back(deserialized);
-
-                pthread_mutex_lock(&pthread_mutex);
-                respuesta_recibida = 1;
-                pthread_cond_signal(&condition);
-                pthread_mutex_unlock(&pthread_mutex);
-
-                publisher.send(zmq::str_buffer("status"), zmq::send_flags::none);
-                publisher.send(zmq::str_buffer("Mensaje desde broker"));
-                //pthread_exit(NULL);
-
-            }
-
-            std::cout << "Received message on topic \"" << topic_str << "\": " << content_str << std::endl;
-            print_vector(publisher_list);
-        } else {
-            // handle receive errors
-            std::cerr << "Error receiving message: " << zmq_strerror(errno) << std::endl;
-        }
-           */
+            */
     }
 
     //router.close();
