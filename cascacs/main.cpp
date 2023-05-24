@@ -57,6 +57,14 @@ void *publisher_thread(void *args) {
 int main(void)
 {
 
+//int main(int argc, char *argv[])
+//{
+	
+    //QApplication a(argc, argv);
+    //MainWindow w;
+    //w.show();
+    //return a.exec();
+
     //Configuracion de prioridad de los hilos
     sched_param params;
     int priority = sched_get_priority_max(SCHED_FIFO);
