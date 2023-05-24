@@ -199,7 +199,7 @@ void* Publisher_routine(void* arg)
     socket.connect("tcp://localhost:5555");
 
     //Creamos un publisher de prueba
-    Publisher publisher(publisher_id,"sensor/bombillo/",60);
+    Publisher publisher(publisher_id,"sensor/bombillo",60);
 
 
 
@@ -207,7 +207,7 @@ void* Publisher_routine(void* arg)
 
         if(!publisher.getConnected()){
             std::cout << "El publicador no se ha conectado " << std::endl;
-            if(publisher.sendConnect(false,socket)){
+            if(publisher.sendConnect(true,socket)){
                 std::cout << "CONNACK" << std::endl;
 
                 std::ostringstream oss;
