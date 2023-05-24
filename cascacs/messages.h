@@ -18,6 +18,7 @@ class CONNECT {
         bool lastWillRetain;
 
     public:
+        CONNECT(){}
         CONNECT(std::string clientId,bool cleanSession,int keepAlive)
         :
         clientId(clientId),
@@ -36,6 +37,10 @@ class CONNECT {
 
         std::string getClientId(){
             return clientId;
+        }
+
+        bool getCleanSession(){
+            return cleanSession;
         }
 
      //Recordar meter SETTERS Y GETTERS AQUI

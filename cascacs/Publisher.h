@@ -199,7 +199,7 @@ void* Publisher_routine(void* arg)
     socket.connect("tcp://localhost:5555");
 
     //Creamos un publisher de prueba
-    Publisher publisher(publisher_id,"sensor/bombillo/"+publisher_id,60);
+    Publisher publisher(publisher_id,"sensor/bombillo",60);
 
 
 

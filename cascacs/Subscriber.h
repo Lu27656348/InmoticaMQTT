@@ -2,11 +2,16 @@
 #define SUBSCRIBER_H
 
 #include <zmq.hpp>
+#include <string>
 #include <iostream>
 struct subscriber_args {
     zmq::context_t* context;
     std::string publisher_id;
 };
+void susbscribe_to_topic(zmq::socket_t &socket, const std::string &topic){
+    socket.setsockopt(ZMQ_SUBSCRIBE, topic.c_str(), topic.length());
+}
+
 
 void* Subscriber_routine(void* arg)
 {
@@ -19,7 +24,8 @@ void* Subscriber_routine(void* arg)
     std::cout << "Subscriber iniciado " <<std::endl;
     zmq::socket_t socket(*context, ZMQ_SUB);
     socket.connect("tcp://localhost:5556");
-    socket.setsockopt(ZMQ_SUBSCRIBE, "", 0);
+    susbscribe_to_topic(socket,"sensor/bombillo");
+    //socket.setsockopt(ZMQ_SUBSCRIBE, "", 0);
 
 
     while (true) {

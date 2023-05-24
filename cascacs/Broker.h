@@ -8,6 +8,7 @@
 #include "shared.h"
 #include "messages.h"
 #include "Publisher.h"
+#include "Redis.h"
 
 pthread_mutex_t pthread_mutex;
 pthread_cond_t condition;
@@ -86,8 +87,17 @@ int topic_handler(std::string topic, std::string payload){
                     std::cout << "Se recibio una peticion CONNECT con las caracteristicas: " << content_str << std::endl;
 
                     std::istringstream iss(content_str);
-                    Publisher deserialized;
+                    CONNECT deserialized;
                     iss >> deserialized;
+
+
+                    if(deserialized.getCleanSession() == 0){
+                        std::cout << "Redis -> " << std::endl;
+                        add_pub(deserialized.getClientId());
+                        list_publishers();
+                    }
+
+
 
                     //Enviar CONNACK de vuelta y habilitar conexion (Nota: Actualmente por los mecanismos de ZeroMQ
                     //Los publicadores no pueden recibir mensajes, es necesario cambiar los sockets a tipo reply
@@ -121,8 +131,8 @@ int topic_handler(std::string topic, std::string payload){
 
                     publisher_list.push_back(deserialized);
                     std::cout << "Se ha hecho una publicacion " << std::endl;
-                    publisher.send(zmq::str_buffer("status"), zmq::send_flags::none);
-                    publisher.send(zmq::str_buffer("Mensaje desde broker"));
+                    publisher.send(zmq::str_buffer("sensor/bombillo"), zmq::send_flags::none);
+                    publisher.send(zmq::str_buffer("Hola mundo"));
                 }
 
                 std::cout << "Received message on topic \"" << topic_str << "\": " << content_str << std::endl;
