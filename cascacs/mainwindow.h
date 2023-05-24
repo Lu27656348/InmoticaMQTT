@@ -15,7 +15,20 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+private slots:
+    void on_crear_sub_btn_clicked();
+
+    void on_listar_subcriptores_btn_clicked();
+
+    void on_servicios_subscritos_btn_clicked();
+
+    void on_subscribir_btn_clicked();
+
+    void on_listar_publicaciones_btn_clicked();
+
+
 private:
     Ui::MainWindow *ui;
 };
 #endif // MAINWINDOW_H
+
