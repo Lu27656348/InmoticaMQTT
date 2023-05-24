@@ -34,6 +34,10 @@ class CONNECT {
             return is;
         }
 
+        std::string getClientId(){
+            return clientId;
+        }
+
      //Recordar meter SETTERS Y GETTERS AQUI
 };
 
@@ -69,12 +73,24 @@ class CONNACK {
 #define PUBLISH_H
 
 class PUBLISH {
+    private:
         int packetId; //Always 0 for qos 0
         std::string topicName;
         int qos;
         bool retainFlag;
         std::string payload;
         bool dupFlag;
+    public:
+        PUBLISH(std::string topicName_,std::string payload_):
+            packetId(0),
+            topicName(topicName_),
+            payload(payload_),
+            qos(0),
+            retainFlag(false),
+            dupFlag(false)
+        {}
+
+
 };
 
 #endif // PUBLISH_H

@@ -51,6 +51,8 @@ int generate_id() {
         // Mostrar solo la sección del ID que se desea
         int id = hashedTiempoActual % 1000000;
 
+        std::cout << "ID generado -> " << id << std::endl;
+
         return id;
 }
 void* sendMesage(zmq::socket_t &socket,std::string topic, std::string payload){
@@ -68,6 +70,7 @@ private:
     std::string client_id;
     std::string publish_topic;
     int keep_alive_interval;
+    bool connected;
     std::string port;
     std::string broker_address;
     std::string username;
@@ -84,7 +87,8 @@ public:
     Publisher(std::string client_id, std::string publish_topic, int keep_alive_interval)
         : client_id(client_id),
         publish_topic(publish_topic),
-        keep_alive_interval(keep_alive_interval){}
+        keep_alive_interval(keep_alive_interval),
+        connected(false){}
     void hello_world(){
         std::cout << "Hello world" << std::endl;
     }
@@ -128,14 +132,21 @@ public:
 
         respuesta_recibida = 0;
         pthread_mutex_unlock(&pthread_mutex);
-        std::cout << "Publisher conectado al broker" << std::endl;
-        pthread_exit(NULL);
+        std::cout << "Publisher " << client_id << " conectado al broker" << std::endl;
+        connected = true;
+        //pthread_exit(NULL);
         return true;
 
     }
 
     std::string getClientId(){
         return client_id;
+    }
+    bool getConnected(){
+        return connected;
+    }
+    void setConnected(bool connected_){
+        connected = connected_;
     }
     void setClientId(std::string client_id_){
         client_id = client_id_;
@@ -173,47 +184,61 @@ void* writer_thread(void*){
 
 void* Publisher_routine(void* arg)
 {
-
+    //Primero tomamos el objeto pasado como parametro por el hilo
     publisher_args* args = static_cast<publisher_args*>(arg);
 
+    //Extraemos las propiedades del objeto (id_publicador y el contexto de conexion)
     zmq::context_t* context = args->context;
     std::string publisher_id = args->publisher_id;
 
+    //Iniciamos el publisher
     std::cout << "Publisher iniciado " <<std::endl;
     zmq::socket_t socket(*context, ZMQ_PUB);
 
+    //Conectamos el publisher al puerto del broker
     socket.connect("tcp://localhost:5555");
 
+    //Creamos un publisher de prueba
+    Publisher publisher(publisher_id,"sensor/bombillo/"+publisher_id,60);
+
+
+
     while (true) {
-        std::string message = publisher_id + ": Hello, World!";
-        zmq::message_t zmq_message(message.size());
-        memcpy(zmq_message.data(), message.data(), message.size());
-        socket.send(zmq_message);
-        usleep(1000000); // Esperar un segundo
+
+        if(!publisher.getConnected()){
+            std::cout << "El publicador no se ha conectado " << std::endl;
+            if(publisher.sendConnect(true,socket)){
+                std::cout << "CONNACK" << std::endl;
+
+                std::ostringstream oss;
+                oss << publisher;
+                std::string payload = oss.str();
+
+                sendMesage(socket,"PUBLISH",payload);
+            }
+        }else{
+            std::cout << "El publicador "<< publisher_id <<" se ha conectado " << std::endl;
+
+
+        }
+
+        std::ostringstream oss;
+        oss << publisher;
+        std::string payload = oss.str();
+
+        usleep(3000000); // Esperar un segundo
     }
 
     return NULL;
-
-
-    //Creamos un publisher de prueba
-    Publisher publisher("1","bombillo",60);
-
-    bool publisherConnected = false;
 
     while(true){
         std::string message = "Mensaje " + std::to_string(generate_id());
         zmq::message_t zmq_message(message.size());
         memcpy(zmq_message.data(), message.c_str(), message.size());
 
-        std::string topic = "CONNECT";
-        zmq::message_t topic_msg(topic.size());
-        memcpy(topic_msg.data(), topic.data(), topic.size());
 
-        zmq::message_t payload_msg(message.size());
-        memcpy(payload_msg.data(), message.c_str(), message.size());
 
-        socket.send(topic_msg, zmq::send_flags::sndmore);
-        socket.send(payload_msg, zmq::send_flags::none);
+
         //std::cout << "Publicador envió mensaje: " << message << std::endl;
         sleep(1);
         //writer_thread(NULL);
