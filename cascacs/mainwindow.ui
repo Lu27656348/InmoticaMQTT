@@ -164,6 +164,16 @@
      </rect>
     </property>
    </widget>
+   <widget class="QTableWidget" name="publisherTable">
+    <property name="geometry">
+     <rect>
+      <x>440</x>
+      <y>30</y>
+      <width>321</width>
+      <height>251</height>
+     </rect>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -171,7 +181,7 @@
      <x>0</x>
      <y>0</y>
      <width>798</width>
-     <height>21</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuProyecto_distribuidos">

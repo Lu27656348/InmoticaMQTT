@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "Publisher_class.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -12,13 +13,13 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    MainWindow(QWidget *parent = nullptr,QVector<Publisher> publisher_list_ = {});
     ~MainWindow();
 
 private slots:
     void on_crear_sub_btn_clicked();
 
-    void on_listar_subcriptores_btn_clicked();
+    void on_listar_subcriptores_btn_clicked(std::vector<int> &int_list);
 
     void on_servicios_subscritos_btn_clicked();
 

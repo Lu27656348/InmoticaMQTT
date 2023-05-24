@@ -15,10 +15,12 @@ SOURCES += \
 
 HEADERS += \
     Publisher.h \
+    Publisher_class.h \
     Redis.h \
     Subscriber.h \
     mainwindow.h \
     messages.h \
+    publisher_routine.h \
     shared.h
 
 FORMS += \
