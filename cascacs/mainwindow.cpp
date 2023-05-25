@@ -43,7 +43,6 @@ void MainWindow::on_listar_subcriptores_btn_clicked(std::vector<int> &int_list)
 
 }
 
-
 void MainWindow::on_servicios_subscritos_btn_clicked()
 {
 
