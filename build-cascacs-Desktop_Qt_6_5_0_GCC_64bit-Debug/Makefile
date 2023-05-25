@@ -40,7 +40,7 @@ DISTNAME      = cascacs1.0.0
 DISTDIR = /home/cesar/Escritorio/Proyecto/InmoticaMQTT/build-cascacs-Desktop_Qt_6_5_0_GCC_64bit-Debug/.tmp/cascacs1.0.0
 LINK          = g++
 LFLAGS        = -Wl,-rpath,/home/cesar/Qt/6.5.0/gcc_64/lib -Wl,-rpath-link,/home/cesar/Qt/6.5.0/gcc_64/lib
-LIBS          = $(SUBLIBS) -lzmq /home/cesar/Qt/6.5.0/gcc_64/lib/libQt6Widgets.so /home/cesar/Qt/6.5.0/gcc_64/lib/libQt6Gui.so /home/cesar/Qt/6.5.0/gcc_64/lib/libQt6Core.so -lpthread -lGL   
+LIBS          = $(SUBLIBS) -lzmq -lhiredis /home/cesar/Qt/6.5.0/gcc_64/lib/libQt6Widgets.so /home/cesar/Qt/6.5.0/gcc_64/lib/libQt6Gui.so /home/cesar/Qt/6.5.0/gcc_64/lib/libQt6Core.so -lpthread -lGL   
 AR            = ar cqs
 RANLIB        = 
 SED           = sed
@@ -184,6 +184,7 @@ DIST          = ../../../../Qt/6.5.0/gcc_64/mkspecs/features/spec_pre.prf \
 		../../../../Qt/6.5.0/gcc_64/mkspecs/features/qt_config.prf \
 		../../../../Qt/6.5.0/gcc_64/mkspecs/linux-g++/qmake.conf \
 		../../../../Qt/6.5.0/gcc_64/mkspecs/features/spec_post.prf \
+		../cascacs/.qmake.stash \
 		../../../../Qt/6.5.0/gcc_64/mkspecs/features/exclusive_builds.prf \
 		../../../../Qt/6.5.0/gcc_64/mkspecs/features/toolchain.prf \
 		../../../../Qt/6.5.0/gcc_64/mkspecs/features/default_pre.prf \
@@ -205,7 +206,14 @@ DIST          = ../../../../Qt/6.5.0/gcc_64/mkspecs/features/spec_pre.prf \
 		../../../../Qt/6.5.0/gcc_64/mkspecs/features/exceptions.prf \
 		../../../../Qt/6.5.0/gcc_64/mkspecs/features/yacc.prf \
 		../../../../Qt/6.5.0/gcc_64/mkspecs/features/lex.prf \
-		../cascacs/cascacs.pro ../cascacs/mainwindow.h ../cascacs/main.cpp \
+		../cascacs/cascacs.pro ../cascacs/Publisher.h \
+		../cascacs/Publisher_class.h \
+		../cascacs/Redis.h \
+		../cascacs/Subscriber.h \
+		../cascacs/mainwindow.h \
+		../cascacs/messages.h \
+		../cascacs/publisher_routine.h \
+		../cascacs/shared.h ../cascacs/main.cpp \
 		../cascacs/mainwindow.cpp
 QMAKE_TARGET  = cascacs
 DESTDIR       = 
@@ -343,6 +351,7 @@ Makefile: ../cascacs/cascacs.pro ../../../../Qt/6.5.0/gcc_64/mkspecs/linux-g++/q
 		../../../../Qt/6.5.0/gcc_64/mkspecs/features/qt_config.prf \
 		../../../../Qt/6.5.0/gcc_64/mkspecs/linux-g++/qmake.conf \
 		../../../../Qt/6.5.0/gcc_64/mkspecs/features/spec_post.prf \
+		.qmake.stash \
 		../../../../Qt/6.5.0/gcc_64/mkspecs/features/exclusive_builds.prf \
 		../../../../Qt/6.5.0/gcc_64/mkspecs/features/toolchain.prf \
 		../../../../Qt/6.5.0/gcc_64/mkspecs/features/default_pre.prf \
@@ -495,6 +504,7 @@ Makefile: ../cascacs/cascacs.pro ../../../../Qt/6.5.0/gcc_64/mkspecs/linux-g++/q
 ../../../../Qt/6.5.0/gcc_64/mkspecs/features/qt_config.prf:
 ../../../../Qt/6.5.0/gcc_64/mkspecs/linux-g++/qmake.conf:
 ../../../../Qt/6.5.0/gcc_64/mkspecs/features/spec_post.prf:
+.qmake.stash:
 ../../../../Qt/6.5.0/gcc_64/mkspecs/features/exclusive_builds.prf:
 ../../../../Qt/6.5.0/gcc_64/mkspecs/features/toolchain.prf:
 ../../../../Qt/6.5.0/gcc_64/mkspecs/features/default_pre.prf:
@@ -538,7 +548,7 @@ distdir: FORCE
 	$(COPY_FILE) --parents ../cascacs/cascacs_en_US.ts $(DISTDIR)/
 	$(COPY_FILE) --parents qmake_qmake_qm_files.qrc $(DISTDIR)/
 	$(COPY_FILE) --parents ../../../../Qt/6.5.0/gcc_64/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents ../cascacs/mainwindow.h $(DISTDIR)/
+	$(COPY_FILE) --parents ../cascacs/Publisher.h ../cascacs/Publisher_class.h ../cascacs/Redis.h ../cascacs/Subscriber.h ../cascacs/mainwindow.h ../cascacs/messages.h ../cascacs/publisher_routine.h ../cascacs/shared.h $(DISTDIR)/
 	$(COPY_FILE) --parents ../cascacs/Broker.h ../cascacs/main.cpp ../cascacs/mainwindow.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents ../cascacs/mainwindow.ui $(DISTDIR)/
 	$(COPY_FILE) --parents ../cascacs/cascacs_en_US.ts $(DISTDIR)/
@@ -747,6 +757,9 @@ moc_mainwindow.cpp: ../cascacs/mainwindow.h \
 		../../../../Qt/6.5.0/gcc_64/include/QtGui/QTransform \
 		../../../../Qt/6.5.0/gcc_64/include/QtCore/qnativeinterface.h \
 		../../../../Qt/6.5.0/gcc_64/include/QtWidgets/qtabwidget.h \
+		../cascacs/Publisher_class.h \
+		../cascacs/messages.h \
+		../cascacs/shared.h \
 		moc_predefs.h \
 		../../../../Qt/6.5.0/gcc_64/libexec/moc
 	/home/cesar/Qt/6.5.0/gcc_64/libexec/moc $(DEFINES) --include /home/cesar/Escritorio/Proyecto/InmoticaMQTT/build-cascacs-Desktop_Qt_6_5_0_GCC_64bit-Debug/moc_predefs.h -I/home/cesar/Qt/6.5.0/gcc_64/mkspecs/linux-g++ -I/home/cesar/Escritorio/Proyecto/InmoticaMQTT/cascacs -I/home/cesar/Qt/6.5.0/gcc_64/include -I/home/cesar/Qt/6.5.0/gcc_64/include/QtWidgets -I/home/cesar/Qt/6.5.0/gcc_64/include/QtGui -I/home/cesar/Qt/6.5.0/gcc_64/include/QtCore -I. -I/usr/include/c++/11 -I/usr/include/x86_64-linux-gnu/c++/11 -I/usr/include/c++/11/backward -I/usr/lib/gcc/x86_64-linux-gnu/11/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include ../cascacs/mainwindow.h -o moc_mainwindow.cpp
@@ -931,6 +944,9 @@ main.o: ../cascacs/main.cpp ../cascacs/mainwindow.h \
 		../../../../Qt/6.5.0/gcc_64/include/QtGui/QTransform \
 		../../../../Qt/6.5.0/gcc_64/include/QtCore/qnativeinterface.h \
 		../../../../Qt/6.5.0/gcc_64/include/QtWidgets/qtabwidget.h \
+		../cascacs/Publisher_class.h \
+		../cascacs/messages.h \
+		../cascacs/shared.h \
 		../../../../Qt/6.5.0/gcc_64/include/QtWidgets/QApplication \
 		../../../../Qt/6.5.0/gcc_64/include/QtWidgets/qapplication.h \
 		../../../../Qt/6.5.0/gcc_64/include/QtCore/qcoreapplication.h \
@@ -956,7 +972,14 @@ main.o: ../cascacs/main.cpp ../cascacs/mainwindow.h \
 		../../../../Qt/6.5.0/gcc_64/include/QtCore/QLocale \
 		../../../../Qt/6.5.0/gcc_64/include/QtCore/QTranslator \
 		../../../../Qt/6.5.0/gcc_64/include/QtCore/qtranslator.h \
-		../cascacs/Broker.h
+		../cascacs/Broker.h \
+		../cascacs/Publisher.h \
+		../cascacs/Redis.h \
+		../cascacs/main.h \
+		../cascacs/Subscriber.h \
+		../cascacs/publisher_routine.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtCore/QCoreApplication \
+		../../../../Qt/6.5.0/gcc_64/include/QtCore/QTextStream
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o ../cascacs/main.cpp
 
 mainwindow.o: ../cascacs/mainwindow.cpp ../cascacs/mainwindow.h \
@@ -1118,7 +1141,51 @@ mainwindow.o: ../cascacs/mainwindow.cpp ../cascacs/mainwindow.h \
 		../../../../Qt/6.5.0/gcc_64/include/QtGui/QTransform \
 		../../../../Qt/6.5.0/gcc_64/include/QtCore/qnativeinterface.h \
 		../../../../Qt/6.5.0/gcc_64/include/QtWidgets/qtabwidget.h \
-		ui_mainwindow.h
+		../cascacs/Publisher_class.h \
+		../cascacs/messages.h \
+		../cascacs/shared.h \
+		ui_mainwindow.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtCore/QVariant \
+		../../../../Qt/6.5.0/gcc_64/include/QtWidgets/QApplication \
+		../../../../Qt/6.5.0/gcc_64/include/QtWidgets/qapplication.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtCore/qcoreapplication.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtCore/qeventloop.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtCore/qcoreapplication_platform.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtCore/qfuture.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtCore/qfutureinterface.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtCore/qmutex.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtCore/qtsan_impl.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtCore/qresultstore.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtCore/qfuture_impl.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtCore/qthreadpool.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtCore/qthread.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtCore/qdeadlinetimer.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtCore/qelapsedtimer.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtCore/qrunnable.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtCore/qexception.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtCore/qpromise.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtGui/qguiapplication.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtGui/qinputmethod.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtCore/qlocale.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtGui/qguiapplication_platform.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtWidgets/QMenuBar \
+		../../../../Qt/6.5.0/gcc_64/include/QtWidgets/qmenubar.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtWidgets/qmenu.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtWidgets/QStatusBar \
+		../../../../Qt/6.5.0/gcc_64/include/QtWidgets/qstatusbar.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtWidgets/QTextEdit \
+		../../../../Qt/6.5.0/gcc_64/include/QtWidgets/qtextedit.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtWidgets/qabstractscrollarea.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtWidgets/qframe.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtGui/qtextdocument.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtGui/qtextoption.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtGui/qtextcursor.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtGui/qtextformat.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtGui/qpen.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtWidgets/QWidget \
+		../../../../Qt/6.5.0/gcc_64/include/QtWidgets/QMessageBox \
+		../../../../Qt/6.5.0/gcc_64/include/QtWidgets/qmessagebox.h \
+		../../../../Qt/6.5.0/gcc_64/include/QtWidgets/qdialog.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o ../cascacs/mainwindow.cpp
 
 qrc_qmake_qmake_qm_files.o: qrc_qmake_qmake_qm_files.cpp 
