@@ -206,16 +206,17 @@ void parse_mqtt_packet(const char* data, size_t len,int client_socket) {
             std::cout << "Topic: " << publish_packet->topic << std::endl;
             std::cout << "Payload: " << publish_packet->payload << std::endl;
 
-            broker.print_client();
-
             const std::string* topic_to_subscribe = new std::string(publish_packet->topic);
+            const std::string* payload_to_send= new std::string(publish_packet->payload);
             for(auto client : broker.get_clients()){
-                if(client.get_socket_fd() == client_socket){
-                    std::cout << "SE ENCONTRO EL CLIENTE EN EL BROKER" << client.get_socket_fd() << std::endl;
-                    mqtt_client client_sub(client_socket,client.get_client_id(),true);
-                    client_sub.add_subscription(*topic_to_subscribe);
+                for(auto sub : client.get_subscriptions()){
+                        if(sub == *topic_to_subscribe){
+                            std::cout << "Hay un cliente suscrito" << std::endl;
+                            std::cout << "Socket a enviar -> " << client.get_socket_fd() << std::endl;
+                            std::cout << "Hay un cliente suscrito" << std::endl;
+                            send(client.get_socket_fd(),data,len,0);
+                        }
                 }
-                
             }
             std::cout << "Imprimimos topicos: " << std::endl;
 
@@ -233,6 +234,7 @@ void parse_mqtt_packet(const char* data, size_t len,int client_socket) {
             uint16_t packet_id = 0;
 
             // Allocate memory for the PUBACK packet buffer
+            /*
             size_t packet_size = remaining_length + 2;
             uint8_t* packet_buffer = new uint8_t[packet_size];
 
@@ -241,15 +243,15 @@ void parse_mqtt_packet(const char* data, size_t len,int client_socket) {
             offset += write_uint16(packet_buffer + offset, packet_id);
 
             // Send the PUBACK packet over the socket
-            //size_t bytes_sent = send(client_socket, packet_buffer, packet_size, 0);
-            /*
+            size_t bytes_sent = send(client_socket, packet_buffer, packet_size, 0);
+            
             if (bytes_sent < 0) {
                 std::cout << "ERROR" << std::endl;
             }
-            */
+            
             // Free the memory allocated for the packet buffer
-            //delete[] packet_buffer;
-
+            delete[] packet_buffer;
+            */
             break;
         }
         case MQTT_SUBSCRIBE: {
@@ -259,11 +261,13 @@ void parse_mqtt_packet(const char* data, size_t len,int client_socket) {
                 return;
             }
 
-            mqtt_subscribe_packet subscribe_packet;
-            subscribe_packet.header = data[0];
+            //Extraer los acmpos del paquete SUBSCRIBE
+            mqtt_subscribe_packet* subscribe_packet = new mqtt_subscribe_packet();
+            subscribe_packet->header = data[0];
+
 
             // Extract packet identifier
-            subscribe_packet.packet_id = (data[2] << 8) | data[3];
+            subscribe_packet->packet_id = (data[2] << 8) | data[3];
 
             // Extract topics to subscribe
             size_t pos = 4;
@@ -272,33 +276,47 @@ void parse_mqtt_packet(const char* data, size_t len,int client_socket) {
                 std::string topic(reinterpret_cast<const char*>(data + pos + 2), topic_len);
                 pos += 2 + topic_len;
                 uint8_t qos = data[pos];
-                subscribe_packet.topics.emplace_back(topic, qos);
+                subscribe_packet->topics.emplace_back(topic, qos);
                 ++pos;
             }
-            std::vector<mqtt_client> clients = broker.get_clients();
-            for(auto &client : clients){
-                if(client.get_socket_fd() == client_socket){
-                    client.add_subscription(subscribe_packet.topics.back().topic); //Guardo la suscripcion del cliente
-                    //mqtt_table.subscribe(&client,subscribe_packet.topics.back().topic);//Guardo la suscripcion del cliente en el arbol de topicos
+
+            std::cout << "imprimiendo topico\n";
+            for(auto& topic : subscribe_packet->topics){
+                std::cout << topic.topic << std::endl;
+            }
+
+            std::string* topic_to_subscribe = new std::string(subscribe_packet->topics[0].topic);
+
+            for(auto &client : broker.get_clients()){
+                if(client.get_socket_fd() == client_socket){ 
+                    std::cout << client.get_client_id();              
+                    const_cast<mqtt_client&>(client).add_subscription(*topic_to_subscribe);
+                    for(auto& topic : client.get_subscriptions()){
+                        std::cout << topic << std::endl;
+                    }
+                    std::cout << "Hola\n";
                 }
             }
+            
             std::cout << "Received MQTT SUBSCRIBE packet" << std::endl;
-            std::cout << "Packet ID: " << subscribe_packet.packet_id << std::endl;
-            for (const auto& topic : subscribe_packet.topics) {
+            std::cout << "Packet ID: " << subscribe_packet->packet_id << std::endl;
+            for (const auto& topic : subscribe_packet->topics) {
                 std::cout << "Topic: " << topic.topic << ", QoS: " << topic.qos << std::endl;
             }
             // Subscribe tothe requested topics
             mqtt_subscribe_ack_packet ack_packet;
             ack_packet.header = MQTT_SUBACK << 4;
-            ack_packet.packet_id = subscribe_packet.packet_id;
+            ack_packet.packet_id = subscribe_packet->packet_id;
 
-            for (const auto& topic : subscribe_packet.topics) {
+            for (const auto& topic : subscribe_packet->topics) {
                 // TODO: Subscribe to the topic with the desired QoS level
                 // ...
 
                 // Add the topic to the ACK packet
                 ack_packet.return_codes.emplace_back(0x00);
             }
+
+            /*
             std::vector<uint8_t> buffer = ack_packet.serialize();
 
             uint8_t header = MQTT_SUBACK << 4;
@@ -311,7 +329,7 @@ void parse_mqtt_packet(const char* data, size_t len,int client_socket) {
                 send(client_socket, buffer.data(), buffer.size(), 0) == -1) {
                 std::cerr << "Error: Failed to send SUBACK packet" << std::endl;
             }
-
+            */
             
             break;
         }
@@ -338,6 +356,8 @@ void parse_mqtt_packet(const char* data, size_t len,int client_socket) {
             std::cerr << "Error: Unknown MQTT packet type" << std::endl;
             return;
     }
+
+    std::memset((void *)data, 0, sizeof(data));
 }
 
 void handle_client(int client_socket) {
@@ -371,7 +391,7 @@ void handle_client(int client_socket) {
         }
         //std::cout << "Presione enter para seguir..." << std::endl;
         //std::cin.get();
-        std::memset(buffer, 0, sizeof(buffer));
+
     }
     std::cout << "saliendo de handle_client()" << std::endl;
     close(client_socket);
@@ -393,7 +413,7 @@ int main(int argc, char *argv[]) {
     server_address.sin_port = htons(server_port);
 
     if (bind(server_socket, (struct sockaddr *)&server_address, sizeof(server_address)) < 0) {
-        std::cerr << "Error binding socket" << std::endl;
+        std::cerr << "Error binding socket - Free the port 1883 and wait 1 minute" << std::endl;
         return 1;
     }
 
