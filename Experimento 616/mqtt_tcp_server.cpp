@@ -1,4 +1,6 @@
-//g++ -pthread mqtt_tcp_server.cpp -lpaho-mqttpp3 -lpaho-mqtt3as -lssl -lcrypto -lpthread -o server^
+//NOTA:
+//g++ -pthread mqtt_tcp_server.cpp -o server ----> compilador
+
 #include <iostream>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -9,18 +11,14 @@
 #include <bitset>
 #include <atomic>
 #include <mqtt/client.h>
-
 #include <unordered_map>
-
 #include "constans/mqtt_packet_types.hpp"
 #include "constans/mqtt_packet_flags.hpp"
-
 #include "structs/mqtt_fixed_header.hpp"
 #include "structs/ mqtt_connect_packet.hpp"
 #include "structs/mqtt_disconnect_packet.hpp"
 #include "structs/mqtt_publish_packet.hpp"
 #include "structs/mqtt_subscribe_packet.hpp"
-
 #include "classes/mqtt_broker.hpp"
 
 std::atomic<bool> is_running(true);
@@ -294,7 +292,6 @@ void parse_mqtt_packet(const char* data, size_t len,int client_socket) {
                     for(auto& topic : client.get_subscriptions()){
                         std::cout << topic << std::endl;
                     }
-                    std::cout << "Hola\n";
                 }
             }
             
