@@ -1,0 +1,7 @@
+#ifndef MQTT_DISCONNECT_PACKET_H
+#define MQTT_DISCONNECT_PACKET_H
+
+#include <stdint.h>
+
+
+#endif // MQTT_DISCONNECT_PACKET_H
