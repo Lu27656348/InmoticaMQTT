@@ -1,0 +1,4 @@
+const std::vector<std::string>& subscriptions = client.get_subscriptions();
+                    for( auto& sub : subscriptions){
+                        std::cout << sub << std::endl;
+                    }

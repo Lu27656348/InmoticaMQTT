@@ -1,0 +1,18 @@
+#ifndef MQTT_PACKET_TYPES_H
+#define MQTT_PACKET_TYPES_H
+
+// MQTT packet types
+#define MQTT_CONNECT 1
+#define MQTT_CONNACK 2
+#define MQTT_PUBLISH 3
+#define MQTT_PUBACK 4
+#define MQTT_SUBSCRIBE 8
+#define MQTT_SUBACK 9
+#define MQTT_UNSUBSCRIBE 10
+#define MQTT_UNSUBACK 11
+#define MQTT_PINGREQ 12
+#define MQTT_PINGRESP 13
+#define MQTT_DISCONNECT 14
+#define MQTT_RESERVED 15
+
+#endif // MQTT_PACKET_TYPES_H
