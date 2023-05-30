@@ -15,11 +15,12 @@
 #include "constans/mqtt_packet_types.hpp"
 #include "constans/mqtt_packet_flags.hpp"
 #include "structs/mqtt_fixed_header.hpp"
-#include "structs/ mqtt_connect_packet.hpp"
+#include "structs/mqtt_connect_packet.hpp"
 #include "structs/mqtt_disconnect_packet.hpp"
 #include "structs/mqtt_publish_packet.hpp"
 #include "structs/mqtt_subscribe_packet.hpp"
 #include "classes/mqtt_broker.hpp"
+#include <cstring>
 
 std::atomic<bool> is_running(true);
 
@@ -118,7 +119,7 @@ void parse_mqtt_packet(const char* data, size_t len,int client_socket) {
 
             int16_t protocol_name_len = (data[pos] << 8) + data[pos+1];
             pos += 2;
-            if (protocol_name_len != 4 || std::strncmp((char*)&data[pos], "MQTT", 4) != 0) {
+            if (protocol_name_len != 4 || strncmp((char*)&data[pos], "MQTT", 4) != 0) {
                 std::cerr << "Error: Incorrect protocol name or version" << std::endl;
                 return;
             }
@@ -374,7 +375,7 @@ void parse_mqtt_packet(const char* data, size_t len,int client_socket) {
             return;
     }
 
-    std::memset((void *)data, 0, sizeof(data));
+    memset((void *)data, 0, sizeof(data));
 }
 
 void handle_client(int client_socket) {
