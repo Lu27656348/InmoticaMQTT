@@ -1,7 +1,7 @@
 ///NOTA:
 //sudo apt-get install libmqttclient-dev  ---> Instalador
 //Primero, en experimento 616 hacer en el terminal: cd PubSub ---> direccion
-//g++ switch_pub.cpp -lpaho-mqttpp3 -lpaho-mqtt3a -o s_pub --> correr
+//g++ switchC_pub.cpp -lpaho-mqttpp3 -lpaho-mqtt3a -o sc_pub --> correr
 
 #include <iostream>
 #include <cstring>
@@ -73,6 +73,8 @@ int generate_id() {
 }
 
 int main(int argc, char* argv[]) {
+    int id = generate_id();
+
     std::cout << "¿Desea prender o pagara los Bombillos?\n";
     std::cout << "Escriba [ON] (en mayusculas) para encender\n";
     std::cout << "Escriba [OFF] (en mayusculas) para apagar\n";
@@ -80,8 +82,13 @@ int main(int argc, char* argv[]) {
     std::string msg;
     std::cin >> msg;
 
-    SwitchPublisher publisher(generate_id(), "test/bombillo/");
+    //Manda mensaje al Bombillo A
+    SwitchPublisher publisher(id, "test/bombillo/1/");
     publisher.enviarMensaje(msg);
+
+    //Manda mensaje al Bombillo B
+    SwitchPublisher publisher2(id, "test/bombillo/2/");
+    publisher2.enviarMensaje(msg);
 
     return 0;
 }

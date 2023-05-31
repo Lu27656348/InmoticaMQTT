@@ -5,7 +5,7 @@
 #include <chrono>
 #include <thread>
 
-//g++ -o programa programa.cpp -lpaho-mqttpp3 -lpaho-mqtt3as -lpthread
+//g++ -o bombillo bombillo_sub.cpp -lpaho-mqttpp3 -lpaho-mqtt3as -lpthread
 
 #define ADDRESS "tcp://localhost:1883"
 #define CLIENTID "Subscriber"
@@ -76,7 +76,7 @@ int generate_id() {
 }
 
 int main() {
-    BombilloSubscriber bombillo(generate_id(), "test/topic");
+    BombilloSubscriber bombillo(generate_id(), "test/bombillo/a");
 
     while (true) {
         std::this_thread::sleep_for(std::chrono::seconds(10));

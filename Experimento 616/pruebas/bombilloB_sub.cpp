@@ -5,22 +5,23 @@
 #include <chrono>
 #include <thread>
 
-//g++ -o indicador indicador_sub.cpp -lpaho-mqttpp3 -lpaho-mqtt3as -lpthread
+//g++ -o bombilloB bombilloB_sub.cpp -lpaho-mqttpp3 -lpaho-mqtt3as -lpthread
 
 #define ADDRESS "tcp://localhost:1883"
-#define CLIENTID "TemperatureSubscriber"
+#define CLIENTID "Subscriber"
 #define QOS 0
 
-class TemperatureSubscriber : public virtual mqtt::callback {
+class BombilloSubscriber : public virtual mqtt::callback {
 private:
     int id;
     std::string topic;
+    std::string status;
 
     mqtt::async_client client;
     mqtt::connect_options conn_opts;
 
 public:
-    TemperatureSubscriber(int id, const std::string& topic) : id(id), topic(topic), client(ADDRESS, CLIENTID) {
+    BombilloSubscriber(int id, const std::string& topic) : id(id), topic(topic), status("OFF"), client(ADDRESS, CLIENTID) {
         conn_opts.set_clean_session(true);
         client.set_callback(*this);
 
@@ -42,15 +43,17 @@ public:
     void message_arrived(mqtt::const_message_ptr msg) override {
         std::string payload = msg->to_string();
 
-        // Convertir el payload a temperatura en Celsius
-        double temperaturaCelsius = std::stod(payload);
-
-        // Convertir la temperatura de Celsius a Fahrenheit
-        double temperaturaFahrenheit = (temperaturaCelsius * 9 / 5) + 32;
-
-        std::cout << "ID: " << id << std::endl;
-        std::cout << "Temperatura (Celsius): " << temperaturaCelsius << std::endl;
-        std::cout << "Temperatura (Fahrenheit): " << temperaturaFahrenheit << std::endl;
+        if (payload == "ON" && status == "OFF") {
+            status = "ON";
+            std::cout << "El bombillo con ID " << id << " ha cambiado su estado a ON" << std::endl;
+        }
+        else if (payload == "OFF" && status == "ON") {
+            status = "OFF";
+            std::cout << "El bombillo con ID " << id << " ha cambiado su estado a OFF" << std::endl;
+        }
+        else if (payload != "ON" && payload != "OFF") {
+            std::cout << "El payload \"" << payload << "\" no es aceptado. El bombillo con ID " << id << " permanece en estado " << status << std::endl;
+        }
     }
 };
 
@@ -73,8 +76,8 @@ int generate_id() {
 }
 
 int main() {
-    int id = generate_id();  // Generar un ID único para el Subscriber
-    TemperatureSubscriber subscriber(id, "test/temperature");
+    //int id = generate_id();
+    BombilloSubscriber bombillo(2, "test/bombillo/2/");
 
     while (true) {
         std::this_thread::sleep_for(std::chrono::seconds(10));
