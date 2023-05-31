@@ -15,11 +15,12 @@
 #include "constans/mqtt_packet_types.hpp"
 #include "constans/mqtt_packet_flags.hpp"
 #include "structs/mqtt_fixed_header.hpp"
-#include "structs/ mqtt_connect_packet.hpp"
+#include "structs/mqtt_connect_packet.hpp"
 #include "structs/mqtt_disconnect_packet.hpp"
 #include "structs/mqtt_publish_packet.hpp"
 #include "structs/mqtt_subscribe_packet.hpp"
 #include "classes/mqtt_broker.hpp"
+#include <cstring>
 
 std::atomic<bool> is_running(true);
 
@@ -118,7 +119,7 @@ void parse_mqtt_packet(const char* data, size_t len,int client_socket) {
 
             int16_t protocol_name_len = (data[pos] << 8) + data[pos+1];
             pos += 2;
-            if (protocol_name_len != 4 || std::strncmp((char*)&data[pos], "MQTT", 4) != 0) {
+            if (protocol_name_len != 4 || strncmp((char*)&data[pos], "MQTT", 4) != 0) {
                 std::cerr << "Error: Incorrect protocol name or version" << std::endl;
                 return;
             }
@@ -181,6 +182,8 @@ void parse_mqtt_packet(const char* data, size_t len,int client_socket) {
             break;
         }
         case MQTT_PUBLISH: {
+            std::cout << "Entrando al Publish\n";
+
             if (len < 5) {
                 std::cerr << "Error: Data too short to contain MQTT PUBLISH packet" << std::endl;
                 return;
@@ -197,12 +200,22 @@ void parse_mqtt_packet(const char* data, size_t len,int client_socket) {
             publish_packet->topic.assign(&data[4], publish_packet->topic_len);
 
             // Extract the payload from the PUBLISH packet payload
-            size_t payload_len = len - 5 - publish_packet->topic_len;
-            publish_packet->payload.assign(&data[4+publish_packet->topic_len], payload_len-1);
+            size_t payload_len = len - 4 - publish_packet->topic_len;
+            publish_packet->payload.assign(&data[4+publish_packet->topic_len], payload_len);
+
+            uint16_t* message_id = new uint16_t(0);
+            if ((data[0] & 0x06) == MQTT_FLAG_QOS_1) {
+                size_t header_len = 4 + publish_packet->topic_len;
+                *message_id = (data[header_len] << 8) | data[header_len + 1];
+            }
 
             std::cout << "Received MQTT PUBLISH packet" << std::endl;
             std::cout << "Topic: " << publish_packet->topic << std::endl;
             std::cout << "Payload: " << publish_packet->payload << std::endl;
+
+            if ((data[0] & 0x06) == MQTT_FLAG_QOS_1) {
+                std::cout << "Message_id: " << (int)*message_id << std::endl;
+            }
 
             const std::string* topic_to_subscribe = new std::string(publish_packet->topic);
             const std::string* payload_to_send= new std::string(publish_packet->payload);
@@ -232,7 +245,6 @@ void parse_mqtt_packet(const char* data, size_t len,int client_socket) {
             uint16_t packet_id = 0;
 
             // Allocate memory for the PUBACK packet buffer
-            /*
             size_t packet_size = remaining_length + 2;
             uint8_t* packet_buffer = new uint8_t[packet_size];
 
@@ -245,11 +257,13 @@ void parse_mqtt_packet(const char* data, size_t len,int client_socket) {
             
             if (bytes_sent < 0) {
                 std::cout << "ERROR" << std::endl;
+            } else {
+                std::cout << "PUBACK sent succesfully" << std::endl;
             }
             
             // Free the memory allocated for the packet buffer
             delete[] packet_buffer;
-            */
+
             break;
         }
         case MQTT_SUBSCRIBE: {
@@ -300,33 +314,40 @@ void parse_mqtt_packet(const char* data, size_t len,int client_socket) {
             for (const auto& topic : subscribe_packet->topics) {
                 std::cout << "Topic: " << topic.topic << ", QoS: " << topic.qos << std::endl;
             }
-            // Subscribe tothe requested topics
-            mqtt_subscribe_ack_packet ack_packet;
-            ack_packet.header = MQTT_SUBACK << 4;
-            ack_packet.packet_id = subscribe_packet->packet_id;
+            // Subscribe to the requested topics
+            mqtt_subscribe_ack_packet* ack_packet = new mqtt_subscribe_ack_packet();
+            ack_packet->header = MQTT_SUBACK << 4;
+            ack_packet->packet_id = subscribe_packet->packet_id;
 
             for (const auto& topic : subscribe_packet->topics) {
                 // TODO: Subscribe to the topic with the desired QoS level
                 // ...
 
                 // Add the topic to the ACK packet
-                ack_packet.return_codes.emplace_back(0x00);
+                ack_packet->return_codes.emplace_back(0x00);
             }
 
-            /*
-            std::vector<uint8_t> buffer = ack_packet.serialize();
+            std::vector<uint8_t> buffer = ack_packet->serialize();
 
             uint8_t header = MQTT_SUBACK << 4;
             uint8_t remaining_length = buffer.size();
 
             // Construct the fixed header
             std::vector<uint8_t> fixed_header = {header, remaining_length};
+            
             // Send the SUBSCRIBE ACK packet
-            if (send(client_socket, fixed_header.data(), fixed_header.size(), 0) == -1 ||
-                send(client_socket, buffer.data(), buffer.size(), 0) == -1) {
+            size_t bytes_fixed_header = send(client_socket, fixed_header.data(), fixed_header.size(), 0);
+            size_t bytes_buffer = send(client_socket, buffer.data(), buffer.size(), 0);
+
+            if (bytes_fixed_header == -1 || bytes_buffer == -1) {
                 std::cerr << "Error: Failed to send SUBACK packet" << std::endl;
+            } else {
+                std::cout << "SUBACK packet sent successfully" << std::endl;
             }
-            */
+
+            /*delete[] subscribe_packet;
+            delete[] topic_to_subscribe;
+            delete[] ack_packet;*/
             
             break;
         }
@@ -354,7 +375,7 @@ void parse_mqtt_packet(const char* data, size_t len,int client_socket) {
             return;
     }
 
-    std::memset((void *)data, 0, sizeof(data));
+    memset((void *)data, 0, sizeof(data));
 }
 
 void handle_client(int client_socket) {
