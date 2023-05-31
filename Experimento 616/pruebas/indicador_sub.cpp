@@ -5,7 +5,7 @@
 #include <chrono>
 #include <thread>
 
-//g++ -o programa programa.cpp -lpaho-mqttpp3 -lpaho-mqtt3as -lpthread
+//g++ -o indicador indicador_sub.cpp -lpaho-mqttpp3 -lpaho-mqtt3as -lpthread
 
 #define ADDRESS "tcp://localhost:1883"
 #define CLIENTID "TemperatureSubscriber"
