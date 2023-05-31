@@ -47,6 +47,12 @@ public:
         }
         catch (const mqtt::exception& exc) {
             std::cerr << "Error al publicar la temperatura: " << exc.what() << std::endl;
+            std::this_thread::sleep_for(std::chrono::seconds(1)); // Esperar 1 segundo antes de reintentar
+            try {
+                client.reconnect();
+            } catch (const mqtt::exception& exc) {
+                std::cerr << "Error al reconectar: " << exc.what() << std::endl;
+            }
         }
     }
 
