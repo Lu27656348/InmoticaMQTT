@@ -13,6 +13,7 @@
 
 //#define ADDRESS "tcp://localhost:1883"
 #define ADDRESS "tcp://10.68.17.52:1883"
+//#define ADDRESS "tcp://10.68.17.63:1889"
 
 class TemperaturePublisher {
 private:
