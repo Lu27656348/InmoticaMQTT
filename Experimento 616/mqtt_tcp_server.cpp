@@ -21,7 +21,8 @@
 #include "structs/mqtt_subscribe_packet.hpp"
 #include "classes/mqtt_broker.hpp"
 #include <cstring>
-
+#include <mutex>
+std::mutex mtx;
 std::atomic<bool> is_running(true);
 
 mqtt_broker broker(1883);
@@ -182,6 +183,7 @@ void parse_mqtt_packet(const char* data, size_t len,int client_socket) {
             break;
         }
         case MQTT_PUBLISH: {
+            std::lock_guard<std::mutex> guard(mtx); 
             std::cout << "Entrando al Publish\n";
 
             if (len < 5) {
@@ -263,7 +265,7 @@ void parse_mqtt_packet(const char* data, size_t len,int client_socket) {
             
             // Free the memory allocated for the packet buffer
             delete[] packet_buffer;
-
+            mtx.unlock();
             break;
         }
         case MQTT_SUBSCRIBE: {
@@ -291,18 +293,25 @@ void parse_mqtt_packet(const char* data, size_t len,int client_socket) {
                 subscribe_packet->topics.emplace_back(topic, qos);
                 ++pos;
             }
+        
+          
+
 
             std::cout << "imprimiendo topico\n";
             for(auto& topic : subscribe_packet->topics){
                 std::cout << topic.topic << std::endl;
             }
 
-            std::string* topic_to_subscribe = new std::string(subscribe_packet->topics[0].topic);
+            //std::string* topic_to_subscribe = new std::string(subscribe_packet->topics[0].topic);
 
             for(auto &client : broker.get_clients()){
                 if(client.get_socket_fd() == client_socket){ 
-                    std::cout << client.get_client_id();              
-                    const_cast<mqtt_client&>(client).add_subscription(*topic_to_subscribe);
+                    std::cout << client.get_client_id();
+                    for(auto& topic : subscribe_packet->topics){
+                    	std::string* topic_to_subscribe = new std::string(topic.topic);
+                	const_cast<mqtt_client&>(client).add_subscription(*topic_to_subscribe);
+            	    }              
+                    //const_cast<mqtt_client&>(client).add_subscription(*topic_to_subscribe);
                     for(auto& topic : client.get_subscriptions()){
                         std::cout << topic << std::endl;
                     }
@@ -395,15 +404,17 @@ void handle_client(int client_socket) {
             std::cout << "Client disconnected" << std::endl;
             is_running.store(false);
         } else {
+            
             parse_mqtt_packet(buffer,bytes_received,client_socket);
+            //mtx.unlock();
         }
         std::vector<mqtt_client> clients = broker.get_clients();
         std::cout << "Imprimiendo clientes" << std::endl;
-        for(auto &client : clients){
+        for(auto client : clients){
             std::cout << "Client en el socket -> " << client.get_socket_fd() << std::endl;
             std::vector<std::string> topics = client.get_subscriptions();
             std::cout << "     topicos del cliente ->" << std::endl;
-            for(auto &topic : topics){
+            for(auto topic : topics){
                 std::cout << "      "<<topic << std::endl;
             }
         }
@@ -423,7 +434,8 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    std::string server_ip = "127.0.0.1";
+    std::string server_ip = "10.68.17.52";
+    //std::string server_ip = "127.0.0.1";
     int server_port = 1883;
     struct sockaddr_in server_address;
     server_address.sin_family = AF_INET;
@@ -435,7 +447,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    if (listen(server_socket, 5) < 0) {
+    if (listen(server_socket, 7) < 0) {
         std::cerr << "Error listening on socket" << std::endl;
         return 1;
     }
