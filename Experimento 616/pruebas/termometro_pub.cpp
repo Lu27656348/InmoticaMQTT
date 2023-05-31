@@ -11,6 +11,9 @@
 #include <chrono>
 #include <thread>
 
+//#define ADDRESS "tcp://localhost:1883"
+#define ADDRESS "tcp://10.68.17.52:1883"
+
 class TemperaturePublisher {
 private:
     int id;
@@ -19,7 +22,7 @@ private:
     mqtt::connect_options conn_opts;
 
 public:
-    TemperaturePublisher(int id, const std::string& topic) : id(id), topic(topic), client("tcp://localhost:1883", "Publisher") {
+    TemperaturePublisher(int id, const std::string& topic) : id(id), topic(topic), client(ADDRESS, "Publisher") {
         conn_opts.set_clean_session(true);
 
         try {
@@ -77,7 +80,7 @@ int generate_id() {
 
 int main() {
     int id = generate_id();  // Generar un ID único para el Publisher de temperatura
-    TemperaturePublisher publisher(id, "test/topic");
+    TemperaturePublisher publisher(id, "test/temperature");
 
     std::random_device rd;
     std::default_random_engine generator(rd());
@@ -86,7 +89,7 @@ int main() {
     while (true) {
         double temperatura = distribution(generator);
         publisher.publicarTemperatura(temperatura);
-        std::this_thread::sleep_for(std::chrono::seconds(5));
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
     return 0;

@@ -9,6 +9,9 @@
 #include <mqtt/async_client.h>
 #include <string>
 
+//#define ADDRESS "tcp://localhost:1883"
+#define ADDRESS "tcp://10.68.17.52:1883"
+
 class SwitchPublisher {
 private:
     int id;
@@ -17,7 +20,7 @@ private:
     mqtt::connect_options conn_opts;
 
 public:
-    SwitchPublisher(int id, const std::string& topic) : id(id), topic(topic), client("tcp://localhost:1883", "Publisher") {
+    SwitchPublisher(int id, const std::string& topic) : id(id), topic(topic), client(ADDRESS, "Publisher") {
         conn_opts.set_clean_session(true);
 
         try {
@@ -83,10 +86,14 @@ int main(int argc, char* argv[]) {
     std::cin >> msg;
 
     //Manda mensaje al Bombillo A
+    std::cout << "Bombillo A\n";
     SwitchPublisher publisher(id, "test/bombillo/1/");
     publisher.enviarMensaje(msg);
+    
+    std::cout << "\n";
 
     //Manda mensaje al Bombillo B
+    std::cout << "Bombillo B\n";
     SwitchPublisher publisher2(id, "test/bombillo/2/");
     publisher2.enviarMensaje(msg);
 

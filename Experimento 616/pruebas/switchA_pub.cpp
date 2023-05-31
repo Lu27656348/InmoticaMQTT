@@ -1,13 +1,16 @@
 ///NOTA:
 //sudo apt-get install libmqttclient-dev  ---> Instalador
 //Primero, en experimento 616 hacer en el terminal: cd PubSub ---> direccion
-//g++ switch_pub.cpp -lpaho-mqttpp3 -lpaho-mqtt3a -o s_pub --> correr
+//g++ switchA_pub.cpp -lpaho-mqttpp3 -lpaho-mqtt3a -o sa_pub --> correr
 
 #include <iostream>
 #include <cstring>
 #include <cstdlib>
 #include <mqtt/async_client.h>
 #include <string>
+
+//#define ADDRESS "tcp://localhost:1883"
+#define ADDRESS "tcp://10.68.17.52:1883"
 
 class SwitchPublisher {
 private:
@@ -17,7 +20,7 @@ private:
     mqtt::connect_options conn_opts;
 
 public:
-    SwitchPublisher(int id, const std::string& topic) : id(id), topic(topic), client("tcp://localhost:1883", "Publisher") {
+    SwitchPublisher(int id, const std::string& topic) : id(id), topic(topic), client(ADDRESS, "Publisher") {
         conn_opts.set_clean_session(true);
 
         try {
