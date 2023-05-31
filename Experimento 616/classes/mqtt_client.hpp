@@ -28,7 +28,11 @@ public:
     }
 
     void add_subscription(const std::string& topic) {
-        subscriptions.push_back(topic);
+        auto it = std::find(subscriptions.begin(), subscriptions.end(), topic);
+        if (it == subscriptions.end()) {
+            std::cout << topic << std::endl;
+            subscriptions.push_back(topic);
+        }
     }
 
     void remove_subscription(const std::string& topic) {

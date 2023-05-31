@@ -77,7 +77,7 @@ int generate_id() {
 
 int main() {
     int id = generate_id();  // Generar un ID único para el Publisher de temperatura
-    TemperaturePublisher publisher(id, "test/temperature");
+    TemperaturePublisher publisher(id, "test/topic");
 
     std::random_device rd;
     std::default_random_engine generator(rd());
@@ -86,7 +86,7 @@ int main() {
     while (true) {
         double temperatura = distribution(generator);
         publisher.publicarTemperatura(temperatura);
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::this_thread::sleep_for(std::chrono::seconds(5));
     }
 
     return 0;
