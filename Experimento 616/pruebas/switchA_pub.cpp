@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
     std::string msg;
     std::cin >> msg;
 
-    SwitchPublisher publisher(generate_id(), "test/bombillo/");
+    SwitchPublisher publisher(generate_id(), "test/bombillo/1/");
     publisher.enviarMensaje(msg);
 
     return 0;

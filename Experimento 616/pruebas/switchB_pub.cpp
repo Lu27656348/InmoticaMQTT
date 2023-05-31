@@ -73,6 +73,8 @@ int generate_id() {
 }
 
 int main(int argc, char* argv[]) {
+    int id = generate_id();
+
     std::cout << "¿Desea prender o pagara los Bombillos?\n";
     std::cout << "Escriba [ON] (en mayusculas) para encender\n";
     std::cout << "Escriba [OFF] (en mayusculas) para apagar\n";
@@ -80,7 +82,7 @@ int main(int argc, char* argv[]) {
     std::string msg;
     std::cin >> msg;
 
-    SwitchPublisher publisher(generate_id(), "test/bombillo/");
+    SwitchPublisher publisher(id, "test/bombillo/2/");
     publisher.enviarMensaje(msg);
 
     return 0;
